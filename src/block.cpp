@@ -43,12 +43,36 @@ void CBlock::print() const
     for (int i = 0; i < _count; ++i)
     {
         auto number = *(_numbers[i]);
-        if (0 == number.value)
-            std::cout << ' ' << " \u2503 ";
+        // if (0 == number.value)
+        //     std::cout << ' ' << " \u2503 ";
+        if (number.state == State::ERASED)
+        {
+            if (0 == number.value)
+                std::cout << ' ' << " \u2503 ";
+            else
+                std::cout << Color::Modifier(Color::FG_GREEN) << number.value << Color::Modifier(Color::RESET) << " \u2503 ";
+        }
+        else if (number.state == State::IFOCUS)
+        {
+            std::cout << Color::Modifier(Color::FG_BLACK) 
+            << Color::Modifier(Color::BG_WHITE) << number.value << " "
+            << Color::Modifier(Color::RESET) << "\u2503 ";
+        }
+        else if (number.state == State::EFOCUS)
+        {
+            if (0 == number.value)
+                std::cout << Color::Modifier(Color::FG_GREEN) 
+                << Color::Modifier(Color::BG_WHITE) << "  "
+                << Color::Modifier(Color::RESET) << "\u2503 ";
+            else
+                std::cout << Color::Modifier(Color::FG_GREEN) 
+                << Color::Modifier(Color::BG_WHITE) << number.value << " "
+                << Color::Modifier(Color::RESET) << "\u2503 ";
+        }
         else
         {
-            if (number.state == State::ERASED)
-                std::cout << Color::Modifier(Color::FG_GREEN) << number.value << Color::Modifier(Color::RESET) << " \u2503 ";
+            if (0 == number.value)
+                std::cout << ' ' << " \u2503 ";
             else
                 std::cout << number.value << " \u2503 ";
         }

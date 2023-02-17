@@ -11,6 +11,7 @@ enum Code
     RESET = 0,
     BG_BLUE = 44,
     BG_DEFAULT = 49,
+    BG_WHITE = 47,
     BG_GREEN = 42,
     BG_RED = 41,
     FG_BLACK = 30,

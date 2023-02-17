@@ -30,6 +30,7 @@ int main(int argc, char **argv)
         int eraseGridNumber = inputDifficulty();
         scene.generate();
         scene.eraseRandomGrids(eraseGridNumber);
+        scene.setFocus(0, 0, true); // Focus the first block by default
     }
     else if (argc == 3 && !strcmp(argv[1], "-l")) {
         // load saved game progress

@@ -29,7 +29,10 @@ void CCommand::undo()
 {
     if (_pOwner)
     {
+        // Clear current focus, goto undo point and focus it.
+        _pOwner->setFocus(_pOwner->getCurPoint().x, _pOwner->getCurPoint().y, false);
         _pOwner->setPointValue(_stPoint, _nPreValue);
+        _pOwner->setFocus(_stPoint.x, _stPoint.y, true);
     }
 
     return;

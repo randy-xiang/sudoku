@@ -19,6 +19,7 @@ class CScene
 
     bool setCurValue(const int nCurValue, int& nLastValue);
     bool setPointValue(const point_t&, const int);
+    void setFocus(const int, const int, const bool);
     point_t getCurPoint();
 
     void eraseRandomGrids(const int count);
@@ -34,6 +35,7 @@ class CScene
     void init(); // 将每个格子的指针放到block里面
     void setValue(const int);
     void setValue(const point_t &, const int);
+    void printInstruction() const;
     void printUnderline(int line_no = -1) const;
 
 private:

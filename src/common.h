@@ -14,6 +14,8 @@ enum class State : int
 {
     INITED = 0,
     ERASED,
+    IFOCUS, // With init number, and focused
+    EFOCUS, // W/O init number, and focused
 };
 
 enum class KeyMode : int

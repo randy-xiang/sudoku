@@ -7,6 +7,7 @@
 #include <vector>
 #include "common.h"
 #include "scene.h"
+#include "color.h"
 #include "utility.inl"
 
 CScene::CScene(int index)
@@ -23,7 +24,11 @@ CScene::~CScene()
 
 void CScene::show() const
 {
+    // Clear screen
     cls();
+
+    // Always print instruction on the top
+    printInstruction();
 
     printUnderline();
 
@@ -49,10 +54,33 @@ void CScene::setMode(KeyMode mode)
     }
 }
 
+void CScene::printInstruction() const
+{
+    message("操作说明：");
+    message("0 删除已填入数字");
+    message("u 撤销上一步操作");
+    message("Enter 尝试通关");
+    message("Esc 退出游戏");
+    message("w 光标上移↑");
+    message("a 光标左移←");
+    message("s 光标下移↓");
+    message("d 光标右移→");
+}
+
 void CScene::printUnderline(int line_no) const
 {
     for (int colunm = 0; colunm < 9; ++colunm)
-        std::cout << "\u254B" << "\u2501" << ((_cur_point.y == line_no && _cur_point.x == colunm)?"^":"\u2501") << "\u2501";
+    {
+        std::cout << "\u254B" << "\u2501" << "\u2501"<< "\u2501";
+        // if (_cur_point.y == line_no && _cur_point.x == colunm)
+        //     std::cout << Color::Modifier(Color::BG_WHITE) 
+        //     << Color::Modifier(Color::FG_BLACK) 
+        //     << Color::Modifier(Color::BLINK) 
+        //     << Color::Modifier(Color::BOLD) << "-" << "-" 
+        //     << Color::Modifier(Color::RESET);
+        // else
+            // std::cout << "\u2501"<< "\u2501" ;
+    }
     std::cout << "\u254B" << std::endl;
 }
 
@@ -104,7 +132,7 @@ void CScene::init()
 bool CScene::setCurValue(const int nCurValue, int &nLastValue)
 {
     auto point = _map[_cur_point.x + _cur_point.y * 9];
-    if (point.state == State::ERASED)
+    if (point.state == State::EFOCUS)
     {
         nLastValue = point.value;
         setValue(nCurValue);
@@ -123,6 +151,33 @@ void CScene::setValue(const int value)
 {
     auto p = _cur_point;
     this->setValue(p, value);
+}
+
+// set = true, set focus
+// set = false, unset focus
+// Block's state will transite between INITED and IFOCUS
+// or between ERASED and EFOCUS
+void CScene::setFocus(const int x, const int y, const bool set = true)
+{
+    int idx = x + y * 9;
+    if (set)
+    {
+        if (_map[idx].state == State::INITED)
+            _map[idx].state = State::IFOCUS;
+        else if (_map[idx].state == State::ERASED)
+            _map[idx].state = State::EFOCUS;
+        else
+            return;
+    }
+    else
+    {
+        if (_map[idx].state == State::IFOCUS)
+            _map[idx].state = State::INITED;
+        else if (_map[idx].state == State::EFOCUS)
+            _map[idx].state = State::ERASED;
+        else
+            return;
+    }
 }
 
 // 选择count个格子清空
@@ -230,7 +285,7 @@ void CScene::play()
             CCommand oCommand(this);
             if (!oCommand.execute(key - '0'))
             {
-                std::cout << "this number can't be modified." << std::endl;
+                std::cout << "此处无法修改 This number can't be modified." << std::endl;
             }
             else
             {
@@ -241,12 +296,12 @@ void CScene::play()
         }
         if (key == keyMap->ESC)
         {
-            message("quit game ? [Y/N]");
+            message("退出游戏 quit game ? [Y/N]");
             std::string strInput;
             std::cin >> strInput;
             if (strInput[0] == 'y' || strInput[0] == 'Y')
             {
-                message("do you want to save the game progress ? [Y/N]");
+                message("保存游戏进度吗 Do you want to save the game progress ? [Y/N]");
                 std::cin >> strInput;
                 if (strInput[0] == 'y' || strInput[0] == 'Y')
                 {
@@ -257,13 +312,13 @@ void CScene::play()
                 exit(0);
             } else
             {
-                message("continue.");
+                message("继续 Continue.");
             }
         }
         else if (key == keyMap->U)
         {
             if (_vCommand.empty())
-                message("no more action to undo.");
+                message("无法继续撤销 No more action to undo.");
             else
             {
                 CCommand& oCommand = _vCommand.back();
@@ -274,35 +329,43 @@ void CScene::play()
         }
         else if (key == keyMap->LEFT)
         {
+            this->setFocus(_cur_point.x, _cur_point.y, false);
             _cur_point.x = (_cur_point.x - 1) < 0 ? 0 : _cur_point.x - 1;
+            this->setFocus(_cur_point.x, _cur_point.y, true);
             show();
         }
         else if (key == keyMap->RIGHT)
         {
+            this->setFocus(_cur_point.x, _cur_point.y, false);
             _cur_point.x = (_cur_point.x + 1) > 8 ? 8 : _cur_point.x + 1;
+            this->setFocus(_cur_point.x, _cur_point.y, true);
             show();
         }
         else if (key == keyMap->DOWN)
         {
+            this->setFocus(_cur_point.x, _cur_point.y, false);
             _cur_point.y = (_cur_point.y + 1) > 8 ? 8 : _cur_point.y + 1;
+            this->setFocus(_cur_point.x, _cur_point.y, true);
             show();
         }
         else if (key == keyMap->UP)
         {
+            this->setFocus(_cur_point.x, _cur_point.y, false);
             _cur_point.y = (_cur_point.y - 1) < 0 ? 0 : _cur_point.y - 1;
+            this->setFocus(_cur_point.x, _cur_point.y, true);
             show();
         }
         else if (key == keyMap->ENTER)
         {
             if (isComplete())
             {
-                message("congratulation! you win!");
+                message("恭喜你！你胜利啦！Congratulation! You win!");
                 getchar();
                 exit(0);
             }
             else
             {
-                message("sorry, not completed.");
+                message("抱歉，还没通关 Sorry, not completed.");
             }
         }
     }
